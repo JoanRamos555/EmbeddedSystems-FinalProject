@@ -1,0 +1,1474 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+
+<meta charset="utf-8">
+
+<title>Robot Dashboard</title>
+
+<style>
+
+body{
+    margin:0;
+    padding:0;
+    background:#ececec;
+    font-family:system-ui,sans-serif;
+}
+
+#grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+    gap:12px;
+    padding:12px;
+}
+
+.panel{
+    background:white;
+    border-radius:12px;
+    padding:14px;
+    box-shadow:0 2px 8px #0002;
+}
+
+h3{
+    margin-top:0;
+}
+
+h4{
+    margin-bottom:5px;
+    margin-top:20px;
+}
+
+input,
+button,
+textarea{
+    width:100%;
+    padding:8px;
+    margin-top:6px;
+    box-sizing:border-box;
+    font-size:1rem;
+}
+
+textarea{
+    height:90px;
+    resize:vertical;
+}
+
+button{
+    cursor:pointer;
+}
+
+#log{
+    background:#111;
+    color:#0f0;
+    height:220px;
+    overflow-y:auto;
+    padding:10px;
+    border-radius:8px;
+    white-space:pre-wrap;
+    font-family:monospace;
+}
+
+.topic-btn{
+    border:none;
+    border-radius:6px;
+    padding:4px 8px;
+    margin:2px;
+    cursor:pointer;
+    background:#ccc;
+}
+
+.topic-btn.active{
+    background:#4caf50;
+    color:white;
+}
+
+#cam {
+    width: 320px;
+    height: 240px;
+
+    transform: rotate(-90deg);
+
+    transform-origin: center center;
+
+    border-radius: 10px;
+}
+
+.center{
+    text-align:center;
+}
+
+#distanceValue{
+    font-size:3rem;
+    font-weight:bold;
+}
+
+#distanceBarContainer{
+    width:100%;
+    height:30px;
+    background:#ddd;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:20px;
+}
+
+#distanceBar{
+    width:0%;
+    height:100%;
+    background:green;
+    transition:0.1s;
+}
+
+.controlGrid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:15px;
+}
+
+.ctrlBtn{
+    height:70px;
+    font-size:1rem;
+    border:none;
+    border-radius:10px;
+    background:#1976d2;
+    color:white;
+}
+
+.ctrlBtn:hover{
+    opacity:0.9;
+}
+
+.stopBtn{
+    background:#d32f2f;
+}
+
+.tankBtn{
+    background:#6a1b9a;
+    font-size:0.85rem;
+    line-height:1.3;
+}
+
+.stats{
+    margin-top:10px;
+    font-family:monospace;
+}
+
+/* ---- Gemelo Virtual ---- */
+
+#gemeloPanel{
+    background:#111827;
+    border-radius:12px;
+    padding:14px;
+    box-shadow:0 2px 8px #0002;
+}
+
+#gemeloPanel h3{
+    margin-top:0;
+    color:#a78bfa;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+#gemeloContainer{
+    width:100%;
+    height:340px;
+    border-radius:10px;
+    overflow:hidden;
+    background:#0d1117;
+    border:1px solid #30363d;
+}
+
+#gemeloAngles{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-top:10px;
+}
+
+.angleChip{
+    background:#1e293b;
+    border-radius:8px;
+    padding:8px;
+    text-align:center;
+    border:1px solid #334155;
+}
+
+.angleChip .chipLabel{
+    font-size:0.65rem;
+    color:#94a3b8;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+}
+
+.angleChip .chipValue{
+    font-size:1.3rem;
+    font-weight:700;
+    color:#a78bfa;
+    font-family:monospace;
+}
+
+.angleChip .chipUnit{
+    font-size:0.65rem;
+    color:#64748b;
+}
+
+/* ---- Ángulo directo ---- */
+
+.angleBox{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    padding:4px 6px;
+    background:#f0f4ff;
+    border-radius:8px;
+    border:1px solid #b3c6f7;
+}
+
+.angleLabel{
+    font-size:0.65rem;
+    font-weight:600;
+    color:#1565c0;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    white-space:nowrap;
+}
+
+.angleRange{
+    font-size:0.6rem;
+    color:#888;
+    white-space:nowrap;
+}
+
+.angleInput{
+    width:100%;
+    padding:4px 5px;
+    font-size:0.9rem;
+    text-align:center;
+    border:1px solid #90a4d4;
+    border-radius:5px;
+    box-sizing:border-box;
+    margin-top:0;
+    background:white;
+}
+
+.angleInput:focus{
+    outline:none;
+    border-color:#1976d2;
+    box-shadow:0 0 0 2px #1976d240;
+}
+
+.goBtn{
+    width:100%;
+    padding:4px 0;
+    font-size:0.8rem;
+    border:none;
+    border-radius:5px;
+    background:#1976d2;
+    color:white;
+    cursor:pointer;
+    margin-top:0;
+}
+
+.goBtn:hover{
+    background:#1565c0;
+}
+
+
+</style>
+
+</head>
+
+<body>
+
+<div id="grid">
+
+<!-- ===================================================== -->
+<!-- CONEXION -->
+<!-- ===================================================== -->
+
+<section class="panel">
+
+<h3>Conexión</h3>
+
+<label>IP Broker</label>
+<input id="ip" value="192.168.1.3">
+
+<label>Puerto</label>
+<input id="port" value="5052">
+
+<button id="btnConnect">
+Conectar
+</button>
+
+<button id="btnDisconnect">
+Desconectar
+</button>
+
+<p id="status">
+🔴 Desconectado
+</p>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- PUBSUB -->
+<!-- ===================================================== -->
+
+<section class="panel">
+
+<h3>Mensajes</h3>
+
+<label>Prefijo base</label>
+<input id="basePrefix" value="UDFJC/emb1">
+
+<label>ID Robot</label>
+<input id="robotId" value="0">
+
+<label>Prefijo completo</label>
+<input id="fullPrefix">
+
+<hr>
+
+<label>Tópico</label>
+<input id="msgTopic" value="debug/test">
+
+<label>Payload JSON</label>
+
+<textarea id="msgPayload">{
+  "hello":"world"
+}</textarea>
+
+<button id="btnPub">
+Publicar
+</button>
+
+<button id="btnSub">
+Suscribir
+</button>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- LOG -->
+<!-- ===================================================== -->
+
+<section class="panel">
+
+<h3>Log</h3>
+
+<div id="filters"></div>
+
+<pre id="log"></pre>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- CAMARA -->
+<!-- ===================================================== -->
+
+<section class="panel center">
+
+<h3>Cámara OV7670</h3>
+
+<canvas
+    id="cam"
+    width="160"
+    height="120">
+</canvas>
+
+<div class="stats" id="camInfo">
+Resolución: --
+</div>
+
+<div class="stats" id="fpsInfo">
+FPS: --
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- DISTANCIA -->
+<!-- ===================================================== -->
+
+<section class="panel center">
+
+<h3>Sensor HC-SR04</h3>
+
+<div id="distanceValue">
+--
+</div>
+
+<div>
+cm
+</div>
+
+<div id="distanceBarContainer">
+<div id="distanceBar"></div>
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- CONTROL CARRO -->
+<!-- ===================================================== -->
+
+<section class="panel">
+
+<h3>Control Carro</h3>
+
+<div class="controlGrid">
+
+<div></div>
+
+<button
+    class="ctrlBtn"
+    id="btnForward">
+⬆ Avanzar
+</button>
+
+<div></div>
+
+<button
+    class="ctrlBtn"
+    id="btnLeft90">
+↺ Izquierda
+</button>
+
+<button
+    class="ctrlBtn stopBtn"
+    id="btnStop">
+⛔
+</button>
+
+<button
+    class="ctrlBtn"
+    id="btnRight90">
+↻ Derecha
+</button>
+
+<button
+    class="ctrlBtn tankBtn"
+    id="btnTankLeft90">
+↺ Tanque<br>−90°
+</button>
+
+<button
+    class="ctrlBtn"
+    id="btnBackward">
+⬇ Retroceder
+</button>
+
+<button
+    class="ctrlBtn tankBtn"
+    id="btnTankRight90">
+↻ Tanque<br>+90°
+</button>
+
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- BRAZO -->
+<!-- ===================================================== -->
+
+<section class="panel">
+
+<h3>Brazo Robot</h3>
+
+<!-- BASE -->
+
+<h4>Base</h4>
+
+<div class="controlGrid">
+
+<button
+    class="ctrlBtn"
+    id="btnBaseLeft">
+← Base
+</button>
+
+<div class="angleBox">
+    <label class="angleLabel">Ángulo Base</label>
+    <div class="angleRange">-90 … 90°</div>
+    <input
+        type="number"
+        class="angleInput"
+        id="inputBase"
+        min="-90"
+        max="90"
+        step="5"
+        placeholder="0">
+    <button
+        class="goBtn"
+        id="btnBaseGo">
+    ↵ Ir
+    </button>
+</div>
+
+<button
+    class="ctrlBtn"
+    id="btnBaseRight">
+Base →
+</button>
+
+</div>
+
+<!-- BRAZO -->
+
+<h4>Brazo</h4>
+
+<div class="controlGrid">
+
+<button
+    class="ctrlBtn"
+    id="btnBrazoExtend">
+↑ Extender
+</button>
+
+<div class="angleBox">
+    <label class="angleLabel">Ángulo Brazo</label>
+    <div class="angleRange">90 … -90°</div>
+    <input
+        type="number"
+        class="angleInput"
+        id="inputBrazo"
+        min="-90"
+        max="90"
+        step="5"
+        placeholder="0">
+    <button
+        class="goBtn"
+        id="btnBrazoGo">
+    ↵ Ir
+    </button>
+</div>
+
+<button
+    class="ctrlBtn"
+    id="btnBrazoRetract">
+↓ Contraer
+</button>
+
+</div>
+
+<!-- CODO -->
+
+<h4>Codo</h4>
+
+<div class="controlGrid">
+
+<button
+    class="ctrlBtn"
+    id="btnCodoExtend">
+↑ Extender
+</button>
+
+<div class="angleBox">
+    <label class="angleLabel">Ángulo Codo</label>
+    <div class="angleRange">0 … 180°</div>
+    <input
+        type="number"
+        class="angleInput"
+        id="inputCodo"
+        min="0"
+        max="180"
+        step="5"
+        placeholder="90">
+    <button
+        class="goBtn"
+        id="btnCodoGo">
+    ↵ Ir
+    </button>
+</div>
+
+<button
+    class="ctrlBtn"
+    id="btnCodoRetract">
+↓ Contraer
+</button>
+
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- GEMELO VIRTUAL -->
+<!-- ===================================================== -->
+
+<section class="panel" id="gemeloPanel">
+
+<h3>🤖 Gemelo Virtual</h3>
+
+<div id="gemeloContainer"></div>
+
+<div id="gemeloAngles">
+
+    <div class="angleChip">
+        <div class="chipLabel">Base</div>
+        <div class="chipValue" id="g3dBase">0</div>
+        <div class="chipUnit">° (−90 / 90)</div>
+    </div>
+
+    <div class="angleChip">
+        <div class="chipLabel">Brazo</div>
+        <div class="chipValue" id="g3dBrazo">0</div>
+        <div class="chipUnit">° (−90 / 90)</div>
+    </div>
+
+    <div class="angleChip">
+        <div class="chipLabel">Codo</div>
+        <div class="chipValue" id="g3dCodo">90</div>
+        <div class="chipUnit">° (0 / 180)</div>
+    </div>
+
+</div>
+
+</section>
+
+</div>
+
+<script>
+
+/* =========================================================
+   CLIENT ID
+========================================================= */
+
+let CLIENT_MAC =
+    localStorage.getItem("client_mac");
+
+if(!CLIENT_MAC){
+
+    CLIENT_MAC = crypto.randomUUID();
+
+    localStorage.setItem(
+        "client_mac",
+        CLIENT_MAC
+    );
+}
+
+/* =========================================================
+   PUBSUB
+========================================================= */
+
+function compareTopics(pattern, topic){
+
+    const p = pattern.split('/');
+    const t = topic.split('/');
+
+    for(let i=0;i<p.length;i++){
+
+        if(p[i] === '#')
+            return true;
+
+        if(p[i] === '+'){
+
+            if(i >= t.length)
+                return false;
+
+            continue;
+        }
+
+        if(i >= t.length)
+            return false;
+
+        if(p[i] !== t[i])
+            return false;
+    }
+
+    return p.length === t.length;
+}
+
+class PubSub{
+
+    constructor(){
+
+        this.subs = {};
+    }
+
+    subscribe(pattern, cb){
+
+        if(!this.subs[pattern])
+            this.subs[pattern] = [];
+
+        this.subs[pattern].push(cb);
+    }
+
+    publish(topic, msg){
+
+        for(const pattern in this.subs){
+
+            if(compareTopics(pattern, topic)){
+
+                this.subs[pattern]
+                .forEach(cb=>cb(topic,msg));
+            }
+        }
+
+        if(this.subs["*"]){
+
+            this.subs["*"]
+            .forEach(cb=>cb(topic,msg));
+        }
+    }
+}
+
+const bus = new PubSub();
+
+/* =========================================================
+   LOG
+========================================================= */
+
+const logBox =
+    document.getElementById("log");
+
+const filtersDiv =
+    document.getElementById("filters");
+
+const topicButtons = {};
+
+let visibleTopics = new Set();
+
+function addTopicButton(topic){
+
+    if(topicButtons[topic])
+        return;
+
+    visibleTopics.add(topic);
+
+    const btn =
+        document.createElement("button");
+
+    btn.className =
+        "topic-btn active";
+
+    btn.textContent = topic;
+
+    btn.onclick = ()=>{
+
+        const active =
+            btn.classList.toggle(
+                "active"
+            );
+
+        if(active)
+            visibleTopics.add(topic);
+        else
+            visibleTopics.delete(topic);
+    };
+
+    filtersDiv.appendChild(btn);
+
+    topicButtons[topic] = btn;
+}
+
+function addLog(topic, txt){
+
+    if(topic.includes("camera/frame"))
+        return;
+
+    if(!topicButtons[topic])
+        addTopicButton(topic);
+
+    if(!visibleTopics.has(topic))
+        return;
+
+    logBox.textContent +=
+        `[${topic}] ${txt}\n`;
+
+    if(logBox.textContent.length > 15000){
+
+        logBox.textContent =
+            logBox.textContent.slice(-12000);
+    }
+
+    logBox.scrollTop =
+        logBox.scrollHeight;
+}
+
+bus.subscribe("*",(topic,msg)=>{
+
+    if(typeof msg === "object")
+        addLog(topic, JSON.stringify(msg));
+    else
+        addLog(topic, msg);
+});
+
+/* =========================================================
+   WEBSOCKET
+========================================================= */
+
+let ws = null;
+
+const statusBox =
+    document.getElementById("status");
+
+document.getElementById(
+    "btnConnect"
+).onclick = ()=>{
+
+    const ip =
+        document.getElementById("ip").value;
+
+    const port =
+        document.getElementById("port").value;
+
+    const url =
+        `ws://${ip}:${port}/ws`;
+
+    ws = new WebSocket(url);
+
+    ws.onopen = ()=>{
+
+        statusBox.textContent =
+            "🟢 Conectado";
+
+        addLog("debug","WS conectado");
+
+        subscribeRobotTopics();
+    };
+
+    ws.onclose = ()=>{
+
+        statusBox.textContent =
+            "🔴 Desconectado";
+    };
+
+    ws.onerror = ()=>{
+
+        addLog("debug","WS error");
+    };
+
+    ws.onmessage = (ev)=>{
+
+        try{
+
+            const msg =
+                JSON.parse(ev.data);
+
+            if(msg.action === "PUB"){
+
+                bus.publish(
+                    msg.topic,
+                    msg.data
+                );
+            }
+
+        }catch(e){}
+    };
+};
+
+document.getElementById(
+    "btnDisconnect"
+).onclick = ()=>{
+
+    if(ws)
+        ws.close();
+};
+
+/* =========================================================
+   PREFIX
+========================================================= */
+
+const basePrefixInput =
+    document.getElementById(
+        "basePrefix"
+    );
+
+const robotIdInput =
+    document.getElementById(
+        "robotId"
+    );
+
+const fullPrefixInput =
+    document.getElementById(
+        "fullPrefix"
+    );
+
+function updatePrefix(){
+
+    let base =
+        basePrefixInput.value.trim();
+
+    if(base.endsWith("/"))
+        base = base.slice(0,-1);
+
+    const robot =
+        robotIdInput.value.trim();
+
+    bus.prefix =
+        `${base}/robot${robot}/`;
+
+    fullPrefixInput.value =
+        bus.prefix;
+}
+
+updatePrefix();
+
+basePrefixInput.onchange =
+    updatePrefix;
+
+robotIdInput.onchange =
+    updatePrefix;
+
+/* =========================================================
+   PUB/SUB
+========================================================= */
+
+bus.pub = function(topic, message){
+
+    bus.publish(topic, message);
+
+    if(ws &&
+       ws.readyState === WebSocket.OPEN){
+
+        ws.send(JSON.stringify({
+            action:"PUB",
+            topic,
+            data:message
+        }));
+    }
+};
+
+bus.sub = function(topic, callback){
+
+    bus.subscribe(topic, callback);
+
+    if(ws &&
+       ws.readyState === WebSocket.OPEN){
+
+        ws.send(JSON.stringify({
+            action:"SUB",
+            topic
+        }));
+    }
+};
+
+bus.pub_pre = function(suffix, message){
+
+    bus.pub(
+        `${bus.prefix}${suffix}`,
+        message
+    );
+};
+
+bus.sub_pre = function(suffix, callback){
+
+    bus.sub(
+        `${bus.prefix}${suffix}`,
+        callback
+    );
+};
+
+/* =========================================================
+   SUSCRIPCIONES AUTOMATICAS
+========================================================= */
+
+function subscribeRobotTopics(){
+
+    bus.sub_pre(
+        "camera/frame",
+        cameraHandler
+    );
+
+    bus.sub_pre(
+        "distance/cm",
+        distanceHandler
+    );
+}
+
+/* =========================================================
+   CAMARA
+========================================================= */
+
+const canvas =
+    document.getElementById("cam");
+
+const ctx =
+    canvas.getContext(
+        "2d",
+        {
+            alpha:false,
+            desynchronized:true
+        }
+    );
+
+const camInfo =
+    document.getElementById(
+        "camInfo"
+    );
+
+const fpsInfo =
+    document.getElementById(
+        "fpsInfo"
+    );
+
+let frameCounter = 0;
+
+let fpsTimer =
+    performance.now();
+
+let lastFrameTime = 0;
+
+const FRAME_INTERVAL = 100;
+
+let img =
+    ctx.createImageData(160,120);
+
+let data = img.data;
+
+function cameraHandler(topic,payload){
+
+    const now =
+        performance.now();
+
+    if(
+        now - lastFrameTime
+        < FRAME_INTERVAL
+    ){
+        return;
+    }
+
+    lastFrameTime = now;
+
+    const binary =
+        atob(payload.frame);
+
+    const len =
+        binary.length;
+
+    for(
+        let i=0,j=0;
+        i<len;
+        i+=2,j+=4
+    ){
+
+        const rgb565 =
+            (binary.charCodeAt(i)<<8)
+            |
+            binary.charCodeAt(i+1);
+
+        data[j] =
+            ((rgb565>>11)&0x1F)<<3;
+
+        data[j+1] =
+            ((rgb565>>5)&0x3F)<<2;
+
+        data[j+2] =
+            (rgb565&0x1F)<<3;
+
+        data[j+3] = 255;
+    }
+
+    ctx.putImageData(img,0,0);
+
+    frameCounter++;
+
+    if(now - fpsTimer >= 1000){
+
+        fpsInfo.textContent =
+            `FPS: ${frameCounter}`;
+
+        frameCounter = 0;
+
+        fpsTimer = now;
+    }
+
+    camInfo.textContent =
+        `Resolución: ${payload.w}x${payload.h}`;
+}
+
+/* =========================================================
+   DISTANCIA
+========================================================= */
+
+const distanceValue =
+    document.getElementById(
+        "distanceValue"
+    );
+
+const distanceBar =
+    document.getElementById(
+        "distanceBar"
+    );
+
+function distanceHandler(topic,payload){
+
+    const d =
+        payload.distance;
+
+    distanceValue.textContent =
+        d.toFixed(1);
+
+    let percent =
+        Math.min(d,100);
+
+    distanceBar.style.width =
+        percent + "%";
+
+    if(d < 10){
+
+        distanceBar.style.background =
+            "red";
+    }
+    else if(d < 30){
+
+        distanceBar.style.background =
+            "orange";
+    }
+    else{
+
+        distanceBar.style.background =
+            "green";
+    }
+}
+
+/* =========================================================
+   CONTROL CARRO
+========================================================= */
+
+function sendCarCommand(cmd){
+
+    bus.pub_pre(
+        "car/control",
+        {
+            cmd:cmd
+        }
+    );
+
+    addLog(
+        "car/control",
+        cmd
+    );
+}
+
+/* ---- Botones hold: presionar=comando, soltar=stop ---- */
+function bindHoldBtn(id, cmd) {
+    const btn = document.getElementById(id);
+    if (!btn) { console.warn("bindHoldBtn: no encontrado", id); return; }
+
+    let active = false;
+
+    function start() {
+        if (active) return;
+        active = true;
+        sendCarCommand(cmd);
+    }
+
+    function stop() {
+        if (!active) return;
+        active = false;
+        sendCarCommand("stop");
+    }
+
+    btn.addEventListener("mousedown",   start);
+    btn.addEventListener("touchstart",  start, { passive: true });
+    btn.addEventListener("mouseup",     stop);
+    btn.addEventListener("mouseleave",  stop);
+    btn.addEventListener("touchend",    stop);
+    btn.addEventListener("touchcancel", stop);
+}
+
+/* ---- Botones de un solo pulso ---- */
+function bindPulseBtn(id, cmd) {
+    const btn = document.getElementById(id);
+    if (!btn) { console.warn("bindPulseBtn: no encontrado", id); return; }
+    btn.addEventListener("mousedown",  () => sendCarCommand(cmd));
+    btn.addEventListener("touchstart", () => sendCarCommand(cmd), { passive: true });
+}
+
+/* Avanzar y retroceder */
+bindHoldBtn("btnForward",  "forward");
+bindHoldBtn("btnBackward", "backward");
+
+/* Girar izquierda / derecha (hold) */
+bindHoldBtn("btnLeft90",  "left");
+bindHoldBtn("btnRight90", "right");
+
+/* Giro de tanque 90° — pulso puntual */
+bindPulseBtn("btnTankLeft90",  "tank_left90");
+bindPulseBtn("btnTankRight90", "tank_right90");
+
+/* Stop explícito */
+document.getElementById("btnStop").addEventListener("mousedown",  () => sendCarCommand("stop"));
+document.getElementById("btnStop").addEventListener("touchstart", () => sendCarCommand("stop"), { passive: true });
+
+/* =========================================================
+   CONTROL BRAZO
+========================================================= */
+
+/* Estado local del brazo — espeja los ángulos del Pico */
+const armState = {
+    base  :   0,
+    brazo :   0,
+    codo  :  90
+};
+
+/* Notifica al gemelo virtual cada vez que cambia un ángulo */
+function updateTwin() {
+    if (window.virtualTwin) {
+        window.virtualTwin.setArmAngles(
+            armState.base,
+            armState.brazo,
+            armState.codo
+        );
+    }
+}
+
+function sendArmCommand(cmd){
+
+    bus.pub_pre(
+        "arm/control",
+        {
+            cmd:cmd
+        }
+    );
+
+    addLog(
+        "arm/control",
+        cmd
+    );
+}
+
+/* BASE
+   FIX: base_left/base_right estaban invertidos en el HTML
+   — el botón "← Base" enviaba base_left que en el Pico
+     suma ángulo (gira a la derecha física). Se intercambian. */
+
+document.getElementById("btnBaseLeft").onclick = ()=>{
+    sendArmCommand("base_right");
+    armState.base = Math.max(-90, armState.base - 10);
+    updateTwin();
+};
+
+document.getElementById("btnBaseRight").onclick = ()=>{
+    sendArmCommand("base_left");
+    armState.base = Math.min(90, armState.base + 10);
+    updateTwin();
+};
+
+/* BRAZO */
+
+document.getElementById("btnBrazoExtend").onclick = ()=>{
+    sendArmCommand("brazo_extend");
+    armState.brazo = Math.min(90, armState.brazo + 10);
+    updateTwin();
+};
+
+document.getElementById("btnBrazoRetract").onclick = ()=>{
+    sendArmCommand("brazo_retract");
+    armState.brazo = Math.max(-90, armState.brazo - 10);
+    updateTwin();
+};
+
+/* CODO */
+
+document.getElementById("btnCodoExtend").onclick = ()=>{
+    sendArmCommand("codo_extend");
+    armState.codo = Math.min(180, armState.codo + 10);
+    updateTwin();
+};
+
+document.getElementById("btnCodoRetract").onclick = ()=>{
+    sendArmCommand("codo_retract");
+    armState.codo = Math.max(0, armState.codo - 10);
+    updateTwin();
+};
+
+/* =========================================================
+   CONTROL BRAZO — IR A ÁNGULO DIRECTO
+   Envía el ángulo absoluto deseado al robot.
+   El Pico recibe {cmd:"base_angle", angle:N} y hace
+   servo.escribir(N) directamente.
+========================================================= */
+
+function sendArmAngle(joint, value, min, max){
+
+    const n = parseInt(value, 10);
+
+    if(isNaN(n)){
+        addLog("arm/control", `⚠️ ${joint}: valor inválido`);
+        return;
+    }
+
+    if(n < min || n > max){
+        addLog("arm/control",
+            `⚠️ ${joint}: ${n}° fuera de rango [${min}, ${max}]`);
+        return;
+    }
+
+    bus.pub_pre(
+        "arm/control",
+        { cmd: `${joint}_angle`, angle: n }
+    );
+
+    addLog("arm/control", `${joint}_angle → ${n}°`);
+}
+
+document.getElementById("btnBaseGo").onclick = ()=>{
+    const v = parseInt(document.getElementById("inputBase").value, 10);
+    sendArmAngle("base", v, -90, 90);
+    if (!isNaN(v) && v >= -90 && v <= 90) {
+        armState.base = v;
+        updateTwin();
+    }
+};
+
+document.getElementById("inputBase").onkeydown = (e)=>{
+    if(e.key === "Enter") document.getElementById("btnBaseGo").click();
+};
+
+document.getElementById("btnBrazoGo").onclick = ()=>{
+    const v = parseInt(document.getElementById("inputBrazo").value, 10);
+    sendArmAngle("brazo", v, -90, 90);
+    if (!isNaN(v) && v >= -90 && v <= 90) {
+        armState.brazo = v;
+        updateTwin();
+    }
+};
+
+document.getElementById("inputBrazo").onkeydown = (e)=>{
+    if(e.key === "Enter") document.getElementById("btnBrazoGo").click();
+};
+
+document.getElementById("btnCodoGo").onclick = ()=>{
+    const v = parseInt(document.getElementById("inputCodo").value, 10);
+    sendArmAngle("codo", v, 0, 180);
+    if (!isNaN(v) && v >= 0 && v <= 180) {
+        armState.codo = v;
+        updateTwin();
+    }
+};
+
+document.getElementById("inputCodo").onkeydown = (e)=>{
+    if(e.key === "Enter") document.getElementById("btnCodoGo").click();
+};
+
+
+</script>
+
+<script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.128.0/build/three.module.js" } }
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'https://unpkg.com/three@0.128.0/examples/jsm/controls/OrbitControls.js';
+
+  // Esperar a que el DOM esté completamente pintado antes de leer clientWidth/clientHeight
+  window.addEventListener("load", () => setTimeout(initGemelo, 50));
+
+  function initGemelo() {
+  const gemeloContainer = document.getElementById("gemeloContainer");
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x111122);
+  scene.fog = new THREE.FogExp2(0x111122, 0.008);
+  const camera3D = new THREE.PerspectiveCamera(45, gemeloContainer.clientWidth / gemeloContainer.clientHeight, 0.1, 1000);
+  camera3D.position.set(5, 4, 6);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(gemeloContainer.clientWidth, gemeloContainer.clientHeight);
+  renderer.shadowMap.enabled = true;
+  gemeloContainer.appendChild(renderer.domElement);
+  const controls = new OrbitControls(camera3D, renderer.domElement);
+  controls.enableDamping = true;
+
+  scene.add(new THREE.AmbientLight(0x404060));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+  dirLight.position.set(3, 5, 2);
+  dirLight.castShadow = true;
+  scene.add(dirLight);
+  scene.add(new THREE.PointLight(0x4466cc, 0.3, 10, 2));
+  scene.add(new THREE.GridHelper(20, 20, 0x88aaff, 0x335588));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshStandardMaterial({ color: 0x223344, roughness: 0.8 }));
+  floor.rotation.x = -Math.PI/2; floor.position.y = -0.2; floor.receiveShadow = true;
+  scene.add(floor);
+
+  class VirtualRobot {
+    constructor(scene) {
+      this.group = new THREE.Group(); scene.add(this.group);
+      const chassisGeo = new THREE.BoxGeometry(1.2, 0.3, 1.8);
+      this.chassis = new THREE.Mesh(chassisGeo, new THREE.MeshStandardMaterial({ color: 0x3a86ff }));
+      this.chassis.castShadow = this.chassis.receiveShadow = true;
+      this.chassis.position.y = 0; this.group.add(this.chassis);
+      const wheelGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.4, 24);
+      const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+      [[-0.6, -0.1, 0.8], [0.6, -0.1, 0.8], [-0.6, -0.1, -0.8], [0.6, -0.1, -0.8]].forEach(pos => {
+        const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+        wheel.rotation.z = Math.PI/2; wheel.position.set(pos[0], pos[1], pos[2]);
+        wheel.castShadow = true; this.group.add(wheel);
+      });
+      const jointMat = new THREE.MeshStandardMaterial({ color: 0xff4757, roughness: 0.2 });
+      const shoulderBase = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.15, 16), new THREE.MeshStandardMaterial({ color: 0x2f3542 }));
+      shoulderBase.position.set(0, 0.225, 0.6); shoulderBase.castShadow = true; this.group.add(shoulderBase);
+      this.baseRotGroup = new THREE.Group(); this.baseRotGroup.position.set(0, 0.075, 0); shoulderBase.add(this.baseRotGroup);
+      const shoulderJointGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.35, 16);
+      shoulderJointGeo.rotateZ(Math.PI/2); this.baseRotGroup.add(new THREE.Mesh(shoulderJointGeo, jointMat));
+      this.shoulder = new THREE.Group(); this.baseRotGroup.add(this.shoulder);
+      const shoulderLinkLength = 0.8;
+      const shoulderLinkGeo = new THREE.BoxGeometry(0.15, shoulderLinkLength, 0.15);
+      const shoulderLinkMesh = new THREE.Mesh(shoulderLinkGeo, new THREE.MeshStandardMaterial({ color: 0xe94560 }));
+      shoulderLinkMesh.position.set(0, shoulderLinkLength/2, 0); shoulderLinkMesh.castShadow = true; this.shoulder.add(shoulderLinkMesh);
+      this.elbowPivot = new THREE.Group(); this.elbowPivot.position.set(0, shoulderLinkLength, 0); this.shoulder.add(this.elbowPivot);
+      const elbowJointGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.28, 16);
+      elbowJointGeo.rotateZ(Math.PI/2); this.elbowPivot.add(new THREE.Mesh(elbowJointGeo, jointMat));
+      this.elbowGroup = new THREE.Group(); this.elbowPivot.add(this.elbowGroup);
+      const elbowLinkLength = 0.8;
+      const elbowLinkGeo = new THREE.BoxGeometry(0.12, 0.12, elbowLinkLength);
+      const elbowLinkMesh = new THREE.Mesh(elbowLinkGeo, new THREE.MeshStandardMaterial({ color: 0x1e3799 }));
+      elbowLinkMesh.position.set(0, 0, elbowLinkLength/2); elbowLinkMesh.castShadow = true; this.elbowGroup.add(elbowLinkMesh);
+      const gripper = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.05), new THREE.MeshStandardMaterial({ color: 0xa5b1c2 }));
+      gripper.position.set(0, 0, elbowLinkLength); gripper.castShadow = true; this.elbowGroup.add(gripper);
+      const fingerGeo = new THREE.BoxGeometry(0.03, 0.06, 0.14);
+      const fingerMat = new THREE.MeshStandardMaterial({ color: 0xf7b731 });
+      const lf = new THREE.Mesh(fingerGeo, fingerMat); lf.position.set(-0.07, 0, 0.07); lf.castShadow = true; gripper.add(lf);
+      const rf = new THREE.Mesh(fingerGeo, fingerMat); rf.position.set(0.07, 0, 0.07); rf.castShadow = true; gripper.add(rf);
+      this.setPose(0, 0, 0);
+      // Posicion inicial: base=0, brazo=0, codo=90
+      this.setArmAngles(0, 0, 90);
+    }
+    setPose(x, y, theta) { this.group.position.set(y, 0, x); this.group.rotation.y = theta; }
+
+    // baseDeg  : -90 a 90  (0=centro)
+    // brazoDeg : -90 a 90  (0=vertical, modo centrado del Pico)
+    // codoDeg  :   0 a 180 (90=recto, modo normal del Pico)
+    setArmAngles(baseDeg, brazoDeg, codoDeg) {
+      // base: en el compañero usaba (baseDeg-90)*PI/180 con rango 0-180
+      // Nosotros tenemos -90 a 90, así que directamente:
+      this.baseRotGroup.rotation.y = baseDeg * Math.PI / 180;
+      // brazo/hombro: 0=vertical, +90=hacia adelante
+      this.shoulder.rotation.x = brazoDeg * Math.PI / 180;
+      // codo: 90=recto, 0=doblado atras, 180=doblado adelante
+      this.elbowGroup.rotation.x = -(codoDeg - 90) * Math.PI / 180;
+
+      // Actualizar chips de ángulo
+      const b  = document.getElementById('g3dBase');
+      const br = document.getElementById('g3dBrazo');
+      const c  = document.getElementById('g3dCodo');
+      if(b)  b.textContent  = baseDeg;
+      if(br) br.textContent = brazoDeg;
+      if(c)  c.textContent  = codoDeg;
+    }
+  }
+
+  const virtualRobot = new VirtualRobot(scene);
+
+  // Exponer al script principal
+  window.virtualTwin = virtualRobot;
+
+  function animateGemelo() { requestAnimationFrame(animateGemelo); controls.update(); renderer.render(scene, camera3D); }
+  animateGemelo();
+
+  window.addEventListener("resize", () => {
+    const w = gemeloContainer.clientWidth, h = gemeloContainer.clientHeight;
+    if (w === 0 || h === 0) return;
+    camera3D.aspect = w / h; camera3D.updateProjectionMatrix(); renderer.setSize(w, h);
+  });
+  } // fin initGemelo
+</script>
+
+</body>
+</html>
